@@ -7,9 +7,9 @@ namespace Constants
     {
         public const string ParticipantName = "jenna";
         public const int StartIndex = 0;
-        public const string TrialsLoadedPath = "Assets/TrialsToLoad/generated_trials_main_FINAL_niall_again_1.json";
-        public const string DataOutputFileName = "gaze_data_contrast_niall_again_1";
-        public const string PathToGazeDataFolder = "C:/Users/jenna/NYU/MotionPerceptoin/motiontrackingunity/Assets/GazeData";
+        public const string TrialsLoadedPath = "TrialsToLoad/trials.json";
+        public const string DataOutputFileName = "gaze_data_fake";
+        public const string PathToGazeDataFolder = "/Users/jennakang/NYU/MotionPerception2/soccerstadium/Assets/GazeData";
 
         public enum TrialSections
         {

@@ -6,7 +6,6 @@ using System.Globalization;
 using UnityEngine.UI;
 using TMPro;
 using System;
-
 public class RunEvaluation : MonoBehaviour
 {
     public GameObject cameraObject;
@@ -50,13 +49,15 @@ public class RunEvaluation : MonoBehaviour
     [System.Serializable]
     public class Segment
     {
-        public Vector3 cameraPosition; // Camera's position in 3D
+        public Vector3 cameraPosition; // Camera's position in 3D'
+        public Vector3 cameraRotation; // Camera's position in 3D
         public Vector3 kickForce; // Force to apply to the object
         public Vector2 duration;
         public float contrastThreshold;
 
-        public Segment(Vector3 cameraPosition, Vector3 kickForce, Vector2 duration, float contrastThreshold)
+        public Segment(Vector3 cameraPosition, Vector3 cameraRotation, Vector3 kickForce, Vector2 duration, float contrastThreshold)
         {
+            this.cameraRotation = cameraRotation;
             this.cameraPosition = cameraPosition;
             this.kickForce = kickForce;
             this.duration = duration;
@@ -93,6 +94,7 @@ public class RunEvaluation : MonoBehaviour
         testCases = LoadTrialsFromJSON(jsonFilePath);
         gazePathRecorder = gazePathRecorderObject.GetComponent<GazeDataRecorder>();
         Debug.Log("Starting study");
+        startButton.gameObject.SetActive(false);
 
         StartCoroutine(RunTestCases());
     }
@@ -121,6 +123,12 @@ public class RunEvaluation : MonoBehaviour
                             segment.camera_position[2]
                         );
 
+                        Vector3 cameraRotation = new Vector3(
+                            segment.camera_rotation[0],
+                            segment.camera_rotation[1],
+                            segment.camera_rotation[2]
+                        );
+
                         Vector3 kickForce = new Vector3(
                             segment.kick_force[0],
                             segment.kick_force[1],
@@ -136,6 +144,7 @@ public class RunEvaluation : MonoBehaviour
 
                         segments.Add(new Segment(
                             cameraPosition,
+                            cameraRotation,
                             kickForce,
                             duration,
                             segment.contrast_threshold_multiplier
@@ -192,10 +201,11 @@ public class RunEvaluation : MonoBehaviour
 
             yield return new WaitUntil(() => !waitingForStartInput);
 
-            
             movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceCrosshairAtPosition(trial.initialCrosshairPlacement);
             movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceBallAtPosition(trial.initialBallPlacement);
             trialSection = Constants.Constants.TrialSections.CROSSHAIR_FIXATION;
+
+            
             yield return StartCoroutine(ShowBlackScreenForceFixate(testCases[i].initialCrosshairPlacement));
 
             blackScreenPanel.SetActive(false);
@@ -207,14 +217,20 @@ public class RunEvaluation : MonoBehaviour
 
             foreach (Segment segment in trial.segments)
             {
+                // reset ball position 
+                movingSphere.transform.position = new Vector3(-0.2127316f, 0.1506587f, -0.1962414f);
+
                 // Set camera position
                 cameraObject.transform.position = segment.cameraPosition;
+                cameraObject.transform.rotation = Quaternion.Euler(segment.cameraRotation);
                 Debug.Log($"Camera Position: {segment.cameraPosition}");
+                Debug.Log($"Camera Rotation: {segment.cameraRotation}");
 
                 // Apply kick force to the object
                 Rigidbody sphereRigidbody = movingSphere.GetComponent<Rigidbody>();
                 sphereRigidbody.velocity = Vector3.zero; // Reset velocity
-                sphereRigidbody.AddForce(segment.kickForce, ForceMode.Impulse);
+                Vector3 direction = transform.forward;
+                sphereRigidbody.AddForce(-direction* segment.kickForce.magnitude, ForceMode.Impulse);
                 Debug.Log($"Kick Force: {segment.kickForce}");
 
                 // Set scene duration and wait
@@ -235,15 +251,15 @@ public class RunEvaluation : MonoBehaviour
             Debug.Log($"Got answer!: TRIAL LENGTH {testCases.Count}, PROGRESS BAR MAX: {progressBar.maxValue}");
 
             // record input based on left/down/up keys 
-            if (answerObjectMotionDir == Constants.Constants.ObjectMotionDirAnswers.UNSURE || !(answerObjectMotionDir == currentObjectMotionDir)){
-                // if it is incorrect, reappend this trial to the list of trials, increment things to traverse
-                testCases.Add(trial);
-                // Update progressbar
-                progressBar.maxValue = testCases.Count;
-                Debug.Log($"INCORRECT ANSWER OR UNSURE: TRIAL LENGTH {testCases.Count}, PROGRESS BAR MAX: {progressBar.maxValue}");
-            } else {
-                Debug.Log("CORRECT ANSWER");
-            }
+            // if (answerObjectMotionDir == Constants.Constants.ObjectMotionDirAnswers.UNSURE || !(answerObjectMotionDir == currentObjectMotionDir)){
+            //     // if it is incorrect, reappend this trial to the list of trials, increment things to traverse
+            //     testCases.Add(trial);
+            //     // Update progressbar
+            //     progressBar.maxValue = testCases.Count;
+            //     Debug.Log($"INCORRECT ANSWER OR UNSURE: TRIAL LENGTH {testCases.Count}, PROGRESS BAR MAX: {progressBar.maxValue}");
+            // } else {
+            //     Debug.Log("CORRECT ANSWER");
+            // }
 
             waitingForAnswerInput = false;
             answerPanel.SetActive(false);
@@ -302,6 +318,7 @@ public class RunEvaluation : MonoBehaviour
     private class SegmentData
     {
         public float[] camera_position; // Change to float array
+        public float[] camera_rotation; // Change to float array
         public float[] kick_force; // Change to float array
         public float[] duration;
         public float contrast_threshold_multiplier;
@@ -310,6 +327,7 @@ public class RunEvaluation : MonoBehaviour
         {
             return new Segment(
                 new Vector3(camera_position[0], camera_position[1], camera_position[2]), // Convert array to Vector3
+                new Vector3(camera_rotation[0], camera_rotation[1], camera_rotation[2]), // Convert array to Vector3
                 new Vector3(kick_force[0], kick_force[1], kick_force[2]), // Convert array to Vector3
                 new Vector2(duration[0], duration[1]), // Convert array to Vector2
                 contrast_threshold_multiplier
@@ -395,54 +413,54 @@ public class RunEvaluation : MonoBehaviour
         blackScreenPanel.SetActive(true);
         crosshair.SetActive(true);
         progressBar.gameObject.SetActive(false);
-        fixationStart = System.DateTime.Now;
-        System.DateTime sinceStartingCrosshair = System.DateTime.Now;
+        // fixationStart = System.DateTime.Now;
+        // System.DateTime sinceStartingCrosshair = System.DateTime.Now;
 
-        // Don't progress trial unless they fixate on the crosshair for at least 1s with <2deg accuracy
-        // angle = 2 * atan((obj_size * 0.5) / object_distance)
-        Vector2 crosshairPosPixels = new Vector2(screenResolutionWidthPixels * crosshairPos.x, screenResolutionHeightPixels * crosshairPos.y);
-        float crosshairEcc = CalculateEccentricity(crosshairPosPixels);
-        // gazePathRecorder
+        // // Don't progress trial unless they fixate on the crosshair for at least 1s with <2deg accuracy
+        // // angle = 2 * atan((obj_size * 0.5) / object_distance)
+        // Vector2 crosshairPosPixels = new Vector2(screenResolutionWidthPixels * crosshairPos.x, screenResolutionHeightPixels * crosshairPos.y);
+        // float crosshairEcc = CalculateEccentricity(crosshairPosPixels);
+        // // gazePathRecorder
 
-        bool done = false;
-        bool lookingAtCrosshair = false;
-        float timeSinceFixation = 0.0f;
-        while (!done){
-            var curGazePos = gazePathRecorder.GetMostRecentGazePos();
-            Vector2 curGazePosPixels = new Vector2(screenResolutionWidthPixels * curGazePos.x, screenResolutionHeightPixels * curGazePos.y);
-            float gazeEcc = CalculateEccentricity(curGazePosPixels);
-            float fixationAcc = Mathf.Abs(crosshairEcc - gazeEcc); // sorta stupid way of doing this but i think it works? (niall)
+        // bool done = false;
+        // bool lookingAtCrosshair = false;
+        // float timeSinceFixation = 0.0f;
+        // while (!done){
+        //     var curGazePos = gazePathRecorder.GetMostRecentGazePos();
+        //     Vector2 curGazePosPixels = new Vector2(screenResolutionWidthPixels * curGazePos.x, screenResolutionHeightPixels * curGazePos.y);
+        //     float gazeEcc = CalculateEccentricity(curGazePosPixels);
+        //     float fixationAcc = Mathf.Abs(crosshairEcc - gazeEcc); // sorta stupid way of doing this but i think it works? (niall)
 
-            if (fixationAcc < FIXATION_THREHSOLD){
-                if (!lookingAtCrosshair){ // First frame of fixating after not fixating
-                    lookingAtCrosshair = true;
-                    fixationStart = System.DateTime.Now; // reset the timer because they stopped fixating
-                }
-                if (lookingAtCrosshair){
-                    timeSinceFixation = (float)(System.DateTime.Now - fixationStart).TotalSeconds;
-                    fixationTimer += timeSinceFixation;
-                }
+        //     if (fixationAcc < FIXATION_THREHSOLD){
+        //         if (!lookingAtCrosshair){ // First frame of fixating after not fixating
+        //             lookingAtCrosshair = true;
+        //             fixationStart = System.DateTime.Now; // reset the timer because they stopped fixating
+        //         }
+        //         if (lookingAtCrosshair){
+        //             timeSinceFixation = (float)(System.DateTime.Now - fixationStart).TotalSeconds;
+        //             fixationTimer += timeSinceFixation;
+        //         }
                 
-                if (timeSinceFixation >= MIN_FIXATION_TIME || (float)(System.DateTime.Now - sinceStartingCrosshair).TotalSeconds > 5){
-                    done = true; // Fixated for enough time, or gaze tracker sucks
-                }
-            }
-            else{
-                lookingAtCrosshair = false;
-                fixationTimer = 0.0f;
-                timeSinceFixation = 0.0f;
-                fixationStart = System.DateTime.Now;
-                yield return null;
-            }
+        //         if (timeSinceFixation >= MIN_FIXATION_TIME || (float)(System.DateTime.Now - sinceStartingCrosshair).TotalSeconds > 5){
+        //             done = true; // Fixated for enough time, or gaze tracker sucks
+        //         }
+        //     }
+        //     else{
+        //         lookingAtCrosshair = false;
+        //         fixationTimer = 0.0f;
+        //         timeSinceFixation = 0.0f;
+        //         fixationStart = System.DateTime.Now;
+        //         yield return null;
+        //     }
 
-            print("cross pos: " + crosshairPosPixels.ToString("F3"));
-            print("gaze pos: " + curGazePosPixels.ToString("F3"));
-            print("fixation acc: " + fixationAcc.ToString("F5"));
-            print("fixation timer: " + fixationTimer.ToString("F5"));
-            print("time since fix: " + timeSinceFixation.ToString());
-            print("=====");
-            yield return null;
-        }
+        //     print("cross pos: " + crosshairPosPixels.ToString("F3"));
+        //     print("gaze pos: " + curGazePosPixels.ToString("F3"));
+        //     print("fixation acc: " + fixationAcc.ToString("F5"));
+        //     print("fixation timer: " + fixationTimer.ToString("F5"));
+        //     print("time since fix: " + timeSinceFixation.ToString());
+        //     print("=====");
+        //     yield return null;
+        // }
         randomWaitTime = UnityEngine.Random.Range(0.0f, 1.0f);
         // // Wait for a random duration between 1 and 2 seconds
         yield return new WaitForSeconds(randomWaitTime);
