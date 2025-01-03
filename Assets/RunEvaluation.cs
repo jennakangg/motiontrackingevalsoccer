@@ -6,8 +6,18 @@ using System.Globalization;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using UnityEditor.Recorder;
+using UnityEditor.Recorder.Input;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing; // For Built-in or URP
+
+
 public class RunEvaluation : MonoBehaviour
 {
+    private RecorderController recorderController;
+    private bool isRecording = false;
+    public PostProcessVolume postProcessVolume; // Reference to the PostProcessVolume
+    private ColorGrading colorGrading; // Reference to the ColorGrading effect
     public GameObject cameraObject;
     public GameObject movingSphere; // Changed to a GameObject representing the 3D sphere
     public RectTransform canvasRectTransform; 
@@ -16,7 +26,6 @@ public class RunEvaluation : MonoBehaviour
     public GameObject crosshair; 
     public Button startButton; 
     public Slider progressBar; // Reference to the Slider UI element
-    public TextMeshProUGUI currentIndexText; // TextMesh Pro reference
     public bool isTrialRunning = false;
     public Vector2 screenCenter;
     public int trialNum = 0;
@@ -25,13 +34,7 @@ public class RunEvaluation : MonoBehaviour
     public float screenPhysicalWidthMeters = 0.6096f;
     public float screenResolutionWidthPixels = 2560.0f;
     public float screenResolutionHeightPixels = 1440.0f;
-
     public float contrastThreshold;
-
-    Vector2 objectMotionDirection;
-    float objectSpeed;
-    Vector2 cameraMotionDirection;
-    float cameraSpeed;
     Vector2 sceneDuration;
     float currentDuration;
     private float elapsedTime = 0f;
@@ -95,9 +98,91 @@ public class RunEvaluation : MonoBehaviour
         gazePathRecorder = gazePathRecorderObject.GetComponent<GazeDataRecorder>();
         Debug.Log("Starting study");
         startButton.gameObject.SetActive(false);
+        InitializeRecorder(); // Initialize the recorder
 
+        // Ensure the PostProcessVolume has a ColorGrading override
+        if (postProcessVolume.profile.TryGetSettings(out colorGrading))
+        {
+            Debug.Log("ColorGrading effect found and ready to use.");
+        }
+        else
+        {
+            Debug.LogError("No ColorGrading effect found on the PostProcessVolume.");
+        }
         StartCoroutine(RunTestCases());
     }
+
+// RECORDER LOGIC _-------------------------------------------------------------------------------------------------------------------------------
+    private void InitializeRecorder()
+    {
+        // Ensure output folder exists
+        string outputFolder = Path.Combine(Application.dataPath, "Recordings");
+        if (!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        // Create the Recorder Controller Settings
+        var settings = new RecorderControllerSettings();
+        settings.SetRecordModeToManual();
+
+        // Initialize the Recorder Controller
+        recorderController = new RecorderController(settings);
+    }
+
+    private void StartRecording()
+    {
+        if (recorderController == null)
+        {
+            Debug.LogError("RecorderController is not initialized.");
+            return;
+        }
+
+        // Ensure output folder exists
+        string outputFolder = Path.Combine(Application.dataPath, "Recordings");
+        if (!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        // Create dynamic movie recorder settings
+        string trialFileName = Path.Combine(outputFolder, $"trial_video_{trialID}");
+        var movieRecorder = new MovieRecorderSettings
+        {
+            OutputFile = trialFileName, // Base filename with trial number
+            ImageInputSettings = new GameViewInputSettings(),
+            OutputFormat = MovieRecorderSettings.VideoRecorderOutputFormat.MP4,
+        };
+
+        // Create new settings and add the movie recorder
+        var settings = new RecorderControllerSettings();
+        settings.SetRecordModeToManual();
+        settings.AddRecorderSettings(movieRecorder);
+
+        // Reassign the recorder controller with updated settings
+        recorderController = new RecorderController(settings);
+
+        Debug.Log($"Recording started for trial: {trialID}");
+        recorderController.PrepareRecording();
+        recorderController.StartRecording();
+        isRecording = true;
+    }
+
+
+    private void StopRecording()
+    {
+        if (recorderController == null || !isRecording)
+        {
+            Debug.LogWarning("No recording is active to stop.");
+            return;
+        }
+
+        Debug.Log("Recording stopped.");
+        recorderController.StopRecording();
+        isRecording = false;
+    }
+// RECORDER LOGIC _-------------------------------------------------------------------------------------------------------------------------------
+
 
     private List<TrialStructure> LoadTrialsFromJSON(string filePath)
     {
@@ -204,7 +289,6 @@ public class RunEvaluation : MonoBehaviour
             movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceCrosshairAtPosition(trial.initialCrosshairPlacement);
             movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceBallAtPosition(trial.initialBallPlacement);
             trialSection = Constants.Constants.TrialSections.CROSSHAIR_FIXATION;
-
             
             yield return StartCoroutine(ShowBlackScreenForceFixate(testCases[i].initialCrosshairPlacement));
 
@@ -214,6 +298,7 @@ public class RunEvaluation : MonoBehaviour
 
             isTrialRunning = true;
             waitingForStartInput = false;
+            StartRecording(); // Start recording for the trial
 
             foreach (Segment segment in trial.segments)
             {
@@ -233,6 +318,10 @@ public class RunEvaluation : MonoBehaviour
                 sphereRigidbody.AddForce(-direction* segment.kickForce.magnitude, ForceMode.Impulse);
                 Debug.Log($"Kick Force: {segment.kickForce}");
 
+                // Set the contrast value
+                float contrastValue = Mathf.Clamp(segment.contrastThreshold, -100f, 100f);
+                colorGrading.contrast.value = segment.contrastThreshold;
+
                 // Set scene duration and wait
                 sceneDuration = segment.duration;
                 currentDuration = UnityEngine.Random.Range(sceneDuration.x, sceneDuration.y);
@@ -240,6 +329,8 @@ public class RunEvaluation : MonoBehaviour
                 trialSection = Constants.Constants.TrialSections.TRIAL;
                 yield return StartCoroutine(WaitForSceneDuration());
             }
+            Debug.Log("Stopping recording for the trial...");
+            StopRecording(); // Stop recording for the trial
 
             // Ask for input on left/right/stop
             // show screen to ask 

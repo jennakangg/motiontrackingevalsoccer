@@ -9,7 +9,7 @@ namespace Constants
         public const int StartIndex = 0;
         public const string TrialsLoadedPath = "TrialsToLoad/trials.json";
         public const string DataOutputFileName = "gaze_data_fake";
-        public const string PathToGazeDataFolder = "/Users/jennakang/NYU/MotionPerception2/soccerstadium/Assets/GazeData";
+        public const string PathToGazeDataFolder = "C:/Users/Jenna/NYU/MotionTracking/motiontrackingevalsoccer/Assets/GazeData";
 
         public enum TrialSections
         {

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.4465788, g: 0.49641287, b: 0.5748173, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1068,9 +1068,30 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: -3208288374494172647, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
     - {fileID: 65702495048144492, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 4504409719310791647, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -5043784451748033163, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -516098083770646512, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 8578709097331664583, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 2505271470697925691, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -4906838889796845047, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -2181743766629440291, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 281855664364225751, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -466329591000292508, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 8009987137999418058, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -7271449666460269675, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 9141816029861474070, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 1906156016075916671, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 3472119243571837365, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -5446829454917964343, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 568812434329897292, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 6014503084441653313, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -2764512629625626004, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: 9017328541939089309, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -8533559608704919777, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+    - {fileID: -5550219270470342718, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
-      insertIndex: 305
+      insertIndex: 284
       addedObject: {fileID: 1694003820}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: -6358916040129254661, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
@@ -1110,10 +1131,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a8e37b561e2a45bd90865abb534e87a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneCamera: {fileID: 963194227}
-  ballRigidbody: {fileID: 1694003821}
-  movementForce: 2
-  startKey: 114
 --- !u!4 &878330574
 Transform:
   m_ObjectHideFlags: 0
@@ -1141,6 +1158,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 300d66b271b964dc688fa3708955501b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  postProcessVolume: {fileID: 1501239480}
   cameraObject: {fileID: 963194225}
   movingSphere: {fileID: 1694003819}
   canvasRectTransform: {fileID: 467733389}
@@ -1149,7 +1167,6 @@ MonoBehaviour:
   crosshair: {fileID: 125819158}
   startButton: {fileID: 77217513}
   progressBar: {fileID: 142768931}
-  currentIndexText: {fileID: 0}
   isTrialRunning: 0
   screenCenter: {x: 0, y: 0}
   trialNum: 0
@@ -1160,7 +1177,7 @@ MonoBehaviour:
   screenResolutionHeightPixels: 1440
   contrastThreshold: 0
   waitingForStartInput: 1
-  gazePathRecorderObject: {fileID: 0}
+  gazePathRecorderObject: {fileID: 1911351817}
   fixationTimer: 0
   MIN_FIXATION_TIME: 2
   FIXATION_THREHSOLD: 4
@@ -1175,6 +1192,7 @@ GameObject:
   - component: {fileID: 963194228}
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
+  - component: {fileID: 963194229}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1249,13 +1267,73 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.46449777, z: -0, w: 0.8855743}
-  m_LocalPosition: {x: 0.819, y: 0.22, z: -1.862}
+  m_LocalRotation: {x: -0, y: 0.5659962, z: -0, w: 0.8244078}
+  m_LocalPosition: {x: -2.106, y: 0.22, z: -1.41}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -55.355, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 68.943, z: 0}
+--- !u!114 &963194229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeTrigger: {fileID: 963194228}
+  volumeLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  stopNaNPropagation: 1
+  finalBlitToCameraTarget: 0
+  antialiasingMode: 0
+  temporalAntialiasing:
+    jitterSpread: 0.75
+    sharpness: 0.25
+    stationaryBlending: 0.95
+    motionBlending: 0.85
+  subpixelMorphologicalAntialiasing:
+    quality: 2
+  fastApproximateAntialiasing:
+    fastMode: 0
+    keepAlpha: 0
+  fog:
+    enabled: 1
+    excludeSkybox: 1
+  debugLayer:
+    lightMeter:
+      width: 512
+      height: 256
+      showCurves: 1
+    histogram:
+      width: 512
+      height: 256
+      channel: 3
+    waveform:
+      exposure: 0.12
+      height: 256
+    vectorscope:
+      size: 256
+      exposure: 0.12
+    overlaySettings:
+      linearDepth: 0
+      motionColorIntensity: 4
+      motionGridSize: 64
+      colorBlindnessType: 0
+      colorBlindnessStrength: 1
+  m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
+  m_ShowToolkit: 0
+  m_ShowCustomSorter: 0
+  breakBeforeColorGrading: 0
+  m_BeforeTransparentBundles: []
+  m_BeforeStackBundles: []
+  m_AfterStackBundles: []
 --- !u!1 &1233643953
 GameObject:
   m_ObjectHideFlags: 0
@@ -1430,6 +1508,55 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -7286674526275354228, guid: 0d98b0e276174409bbc0dcdd52c34155, type: 3}
+--- !u!1 &1501239479
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1501239481}
+  - component: {fileID: 1501239480}
+  m_Layer: 6
+  m_Name: PostProcessVolume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1501239480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1501239479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9a305e18de0c04dbd257a21cd47087, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sharedProfile: {fileID: 11400000, guid: 54e94ce4224437042bd8a42677a2e7c0, type: 2}
+  isGlobal: 1
+  blendDistance: 0
+  weight: 1
+  priority: 0
+--- !u!4 &1501239481
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1501239479}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.47863698, y: 0.964, z: 2.588}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1534895682
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1584,7 +1711,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c06d6565b66bd425bb9558dd27013a7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  kickForce: 2
 --- !u!114 &1694003824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1612,7 +1738,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objectColor: {r: 1, g: 1, b: 1, a: 1}
-  crosshair: {fileID: 0}
+  crosshair: {fileID: 125819158}
   currentIntensity: 1
 --- !u!1 &1716859500
 GameObject:
@@ -1861,3 +1987,4 @@ SceneRoots:
   - {fileID: 1874146270}
   - {fileID: 697967011}
   - {fileID: 1911351819}
+  - {fileID: 1501239481}
