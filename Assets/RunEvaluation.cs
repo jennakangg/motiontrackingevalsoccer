@@ -6,16 +6,16 @@ using System.Globalization;
 using UnityEngine.UI;
 using TMPro;
 using System;
-using UnityEditor.Recorder;
-using UnityEditor.Recorder.Input;
+// using UnityEditor.Recorder;
+// using UnityEditor.Recorder.Input;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing; // For Built-in or URP
 
 
 public class RunEvaluation : MonoBehaviour
 {
-    private RecorderController recorderController;
-    private bool isRecording = false;
+    // private RecorderController recorderController;
+    // private bool isRecording = false;
     public PostProcessVolume postProcessVolume; // Reference to the PostProcessVolume
     private ColorGrading colorGrading; // Reference to the ColorGrading effect
     public GameObject cameraObject;
@@ -57,14 +57,16 @@ public class RunEvaluation : MonoBehaviour
         public Vector3 kickForce; // Force to apply to the object
         public Vector2 duration;
         public float contrastThreshold;
+        public float ballSize;
 
-        public Segment(Vector3 cameraPosition, Vector3 cameraRotation, Vector3 kickForce, Vector2 duration, float contrastThreshold)
+        public Segment(Vector3 cameraPosition, Vector3 cameraRotation, Vector3 kickForce, Vector2 duration, float contrastThreshold, float ballSize)
         {
             this.cameraRotation = cameraRotation;
             this.cameraPosition = cameraPosition;
             this.kickForce = kickForce;
             this.duration = duration;
             this.contrastThreshold = contrastThreshold;
+            this.ballSize = ballSize;
         }
     }
 
@@ -98,7 +100,7 @@ public class RunEvaluation : MonoBehaviour
         gazePathRecorder = gazePathRecorderObject.GetComponent<GazeDataRecorder>();
         Debug.Log("Starting study");
         startButton.gameObject.SetActive(false);
-        InitializeRecorder(); // Initialize the recorder
+        // InitializeRecorder(); // Initialize the recorder
 
         // Ensure the PostProcessVolume has a ColorGrading override
         if (postProcessVolume.profile.TryGetSettings(out colorGrading))
@@ -113,74 +115,74 @@ public class RunEvaluation : MonoBehaviour
     }
 
 // RECORDER LOGIC _-------------------------------------------------------------------------------------------------------------------------------
-    private void InitializeRecorder()
-    {
-        // Ensure output folder exists
-        string outputFolder = Path.Combine(Application.dataPath, "Recordings");
-        if (!Directory.Exists(outputFolder))
-        {
-            Directory.CreateDirectory(outputFolder);
-        }
+    // private void InitializeRecorder()
+    // {
+    //     // Ensure output folder exists
+    //     string outputFolder = Path.Combine(Application.dataPath, "Recordings");
+    //     if (!Directory.Exists(outputFolder))
+    //     {
+    //         Directory.CreateDirectory(outputFolder);
+    //     }
 
-        // Create the Recorder Controller Settings
-        var settings = new RecorderControllerSettings();
-        settings.SetRecordModeToManual();
+    //     // Create the Recorder Controller Settings
+    //     var settings = new RecorderControllerSettings();
+    //     settings.SetRecordModeToManual();
 
-        // Initialize the Recorder Controller
-        recorderController = new RecorderController(settings);
-    }
+    //     // Initialize the Recorder Controller
+    //     recorderController = new RecorderController(settings);
+    // }
 
-    private void StartRecording()
-    {
-        if (recorderController == null)
-        {
-            Debug.LogError("RecorderController is not initialized.");
-            return;
-        }
+    // private void StartRecording()
+    // {
+    //     if (recorderController == null)
+    //     {
+    //         Debug.LogError("RecorderController is not initialized.");
+    //         return;
+    //     }
 
-        // Ensure output folder exists
-        string outputFolder = Path.Combine(Application.dataPath, "Recordings");
-        if (!Directory.Exists(outputFolder))
-        {
-            Directory.CreateDirectory(outputFolder);
-        }
+    //     // Ensure output folder exists
+    //     string outputFolder = Path.Combine(Application.dataPath, "Recordings");
+    //     if (!Directory.Exists(outputFolder))
+    //     {
+    //         Directory.CreateDirectory(outputFolder);
+    //     }
 
-        // Create dynamic movie recorder settings
-        string trialFileName = Path.Combine(outputFolder, $"trial_video_{trialID}");
-        var movieRecorder = new MovieRecorderSettings
-        {
-            OutputFile = trialFileName, // Base filename with trial number
-            ImageInputSettings = new GameViewInputSettings(),
-            OutputFormat = MovieRecorderSettings.VideoRecorderOutputFormat.MP4,
-        };
+    //     // Create dynamic movie recorder settings
+    //     string trialFileName = Path.Combine(outputFolder, $"trial_video_{trialID}");
+    //     var movieRecorder = new MovieRecorderSettings
+    //     {
+    //         OutputFile = trialFileName, // Base filename with trial number
+    //         ImageInputSettings = new GameViewInputSettings(),
+    //         OutputFormat = MovieRecorderSettings.VideoRecorderOutputFormat.MP4,
+    //     };
 
-        // Create new settings and add the movie recorder
-        var settings = new RecorderControllerSettings();
-        settings.SetRecordModeToManual();
-        settings.AddRecorderSettings(movieRecorder);
+    //     // Create new settings and add the movie recorder
+    //     var settings = new RecorderControllerSettings();
+    //     settings.SetRecordModeToManual();
+    //     settings.AddRecorderSettings(movieRecorder);
 
-        // Reassign the recorder controller with updated settings
-        recorderController = new RecorderController(settings);
+    //     // Reassign the recorder controller with updated settings
+    //     recorderController = new RecorderController(settings);
 
-        Debug.Log($"Recording started for trial: {trialID}");
-        recorderController.PrepareRecording();
-        recorderController.StartRecording();
-        isRecording = true;
-    }
+    //     Debug.Log($"Recording started for trial: {trialID}");
+    //     recorderController.PrepareRecording();
+    //     recorderController.StartRecording();
+    //     isRecording = true;
+    // }
 
 
-    private void StopRecording()
-    {
-        if (recorderController == null || !isRecording)
-        {
-            Debug.LogWarning("No recording is active to stop.");
-            return;
-        }
+    // private void StopRecording()
+    // {
+    //     if (recorderController == null || !isRecording)
+    //     {
+    //         Debug.LogWarning("No recording is active to stop.");
+    //         return;
+    //     }
 
-        Debug.Log("Recording stopped.");
-        recorderController.StopRecording();
-        isRecording = false;
-    }
+    //     Debug.Log("Recording stopped.");
+    //     recorderController.StopRecording();
+    //     isRecording = false;
+    // }
 // RECORDER LOGIC _-------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -232,7 +234,8 @@ public class RunEvaluation : MonoBehaviour
                             cameraRotation,
                             kickForce,
                             duration,
-                            segment.contrast_threshold_multiplier
+                            segment.contrast_threshold_multiplier,
+                            segment.ball_size
                         ));
                     }
                     else
@@ -298,7 +301,7 @@ public class RunEvaluation : MonoBehaviour
 
             isTrialRunning = true;
             waitingForStartInput = false;
-            StartRecording(); // Start recording for the trial
+            // StartRecording(); // Start recording for the trial
 
             foreach (Segment segment in trial.segments)
             {
@@ -314,13 +317,14 @@ public class RunEvaluation : MonoBehaviour
                 // Apply kick force to the object
                 Rigidbody sphereRigidbody = movingSphere.GetComponent<Rigidbody>();
                 sphereRigidbody.velocity = Vector3.zero; // Reset velocity
-                Vector3 direction = transform.forward;
-                sphereRigidbody.AddForce(-direction* segment.kickForce.magnitude, ForceMode.Impulse);
+                // Vector3 direction = transform.left;
+                sphereRigidbody.AddForce(segment.kickForce, ForceMode.Impulse);
                 Debug.Log($"Kick Force: {segment.kickForce}");
 
                 // Set the contrast value
                 float contrastValue = Mathf.Clamp(segment.contrastThreshold, -100f, 100f);
                 colorGrading.contrast.value = segment.contrastThreshold;
+                movingSphere.transform.localScale =  Vector3.one * segment.ballSize;
 
                 // Set scene duration and wait
                 sceneDuration = segment.duration;
@@ -330,7 +334,7 @@ public class RunEvaluation : MonoBehaviour
                 yield return StartCoroutine(WaitForSceneDuration());
             }
             Debug.Log("Stopping recording for the trial...");
-            StopRecording(); // Stop recording for the trial
+            // StopRecording(); // Stop recording for the trial
 
             // Ask for input on left/right/stop
             // show screen to ask 
@@ -413,6 +417,7 @@ public class RunEvaluation : MonoBehaviour
         public float[] kick_force; // Change to float array
         public float[] duration;
         public float contrast_threshold_multiplier;
+        public float ball_size;
 
         public Segment ToSegment()
         {
@@ -421,7 +426,8 @@ public class RunEvaluation : MonoBehaviour
                 new Vector3(camera_rotation[0], camera_rotation[1], camera_rotation[2]), // Convert array to Vector3
                 new Vector3(kick_force[0], kick_force[1], kick_force[2]), // Convert array to Vector3
                 new Vector2(duration[0], duration[1]), // Convert array to Vector2
-                contrast_threshold_multiplier
+                contrast_threshold_multiplier,
+                ball_size
             );
         }
     }
@@ -552,7 +558,7 @@ public class RunEvaluation : MonoBehaviour
         //     print("=====");
         //     yield return null;
         // }
-        randomWaitTime = UnityEngine.Random.Range(0.0f, 1.0f);
+        randomWaitTime = UnityEngine.Random.Range(2.0f, 3.0f);
         // // Wait for a random duration between 1 and 2 seconds
         yield return new WaitForSeconds(randomWaitTime);
 

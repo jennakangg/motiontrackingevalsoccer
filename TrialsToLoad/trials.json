@@ -1,5 +1,41 @@
 [
     {
+        "trial_id": 2,
+        "initial_ball_placement": {
+            "x": 0.5,
+            "y": 0.5
+        },
+        "initial_crosshair_placement": {
+            "x": 0.5,
+            "y": 0.5
+        },
+        "contrast_threshold_multiplier": 1.0,
+        "segments": [
+            {
+                "camera_position": [
+                    -0.061,
+                    0.22,
+                    -2.219
+                ],
+                "camera_rotation": [
+                    0.0,
+                    -2.952,
+                    0.0
+                ],
+                "kick_force": [
+                    -4.0,
+                    0.0,
+                    0.0
+                ],
+                "duration": [
+                    6.0,
+                    6.0
+                ],
+                "contrast_threshold_multiplier": 0.0
+            }
+        ]
+    },
+    {
         "trial_id": 7,
         "initial_ball_placement": {
             "x": 0.5,
