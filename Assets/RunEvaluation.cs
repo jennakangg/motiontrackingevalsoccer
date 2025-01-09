@@ -12,8 +12,10 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing; // For Built-in or URP
 
 
-public class RunEvaluation : MonoBehaviour
+public class RunTrials : MonoBehaviour
 {
+    public StaircaseSettings staircaseSettings;
+    public List<TrialResponse> responseHistory;
     // private RecorderController recorderController;
     // private bool isRecording = false;
     public PostProcessVolume postProcessVolume; // Reference to the PostProcessVolume
@@ -49,6 +51,7 @@ public class RunEvaluation : MonoBehaviour
     private Constants.Constants.ObjectMotionDirAnswers answerObjectMotionDir;
     private bool waitingForAnswerInput;
     private Constants.Constants.TrialSections trialSection;
+    private float sensitivity = 20f;
 
     [System.Serializable]
     public class Segment
@@ -114,80 +117,6 @@ public class RunEvaluation : MonoBehaviour
         }
         StartCoroutine(RunTestCases());
     }
-
-// RECORDER LOGIC _-------------------------------------------------------------------------------------------------------------------------------
-    // private void InitializeRecorder()
-    // {
-    //     // Ensure output folder exists
-    //     string outputFolder = Path.Combine(Application.dataPath, "Recordings");
-    //     if (!Directory.Exists(outputFolder))
-    //     {
-    //         Directory.CreateDirectory(outputFolder);
-    //     }
-
-    //     // Create the Recorder Controller Settings
-    //     var settings = new RecorderControllerSettings();
-    //     settings.SetRecordModeToManual();
-
-    //     // Initialize the Recorder Controller
-    //     recorderController = new RecorderController(settings);
-    // }
-
-    // private void StartRecording()
-    // {
-    //     if (recorderController == null)
-    //     {
-    //         Debug.LogError("RecorderController is not initialized.");
-    //         return;
-    //     }
-
-    //     // Ensure output folder exists
-    //     string outputFolder = Path.Combine(Application.dataPath, "Recordings");
-    //     if (!Directory.Exists(outputFolder))
-    //     {
-    //         Directory.CreateDirectory(outputFolder);
-    //     }
-
-    //     // Create dynamic movie recorder settings
-    //     string trialFileName = Path.Combine(outputFolder, $"trial_video_{trialID}_kick_{kickForce}_contrast_{contrastThreshold}");
-    //     var movieRecorder = new MovieRecorderSettings
-    //     {
-    //         OutputFile = trialFileName, // Base filename with trial number
-    //         ImageInputSettings = new GameViewInputSettings(),
-    //         OutputFormat = MovieRecorderSettings.VideoRecorderOutputFormat.MP4,
-    //     };
-
-    //     // Create new settings and add the movie recorder
-    //     var settings = new RecorderControllerSettings();
-    //     settings.SetRecordModeToManual();
-    //     settings.AddRecorderSettings(movieRecorder);
-
-    //     // Reassign the recorder controller with updated settings
-    //     recorderController = new RecorderController(settings);
-
-    //     Debug.Log($"Recording started for trial: {trialID}");
-    //     recorderController.PrepareRecording();
-    //     recorderController.StartRecording();
-    //     isRecording = true;
-    // }
-
-
-    // private void StopRecording()
-    // {
-    //     if (recorderController == null || !isRecording)
-    //     {
-    //         Debug.LogWarning("No recording is active to stop.");
-    //         return;
-    //     }
-
-    //     Debug.Log("Recording stopped.");
-    //     recorderController.StopRecording();
-    //     isRecording = false;
-    // }
-
-
-// RECORDER LOGIC _-------------------------------------------------------------------------------------------------------------------------------
-
 
     private List<TrialStructure> LoadTrialsFromJSON(string filePath)
     {
@@ -270,10 +199,12 @@ public class RunEvaluation : MonoBehaviour
 
     IEnumerator RunTestCases()
     {
-        int i = 0;
+        bool staircaseDone = false;
+        responseHistory = new();
 
-        while (i < testCases.Count)
+        while (!staircaseDone)
         {
+            int i = Mathf.RoundToInt(UnityEngine.Random.Range(0.0f, 1.0f));
             TrialStructure trial = testCases[i];
             Debug.Log($"Starting trial {startIndex + i}");
 
@@ -293,7 +224,7 @@ public class RunEvaluation : MonoBehaviour
             yield return new WaitUntil(() => !waitingForStartInput);
 
             movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceCrosshairAtPosition(trial.initialCrosshairPlacement);
-            // movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceBallAtPosition(trial.initialBallPlacement);
+
             trialSection = Constants.Constants.TrialSections.CROSSHAIR_FIXATION;
             
             yield return StartCoroutine(ShowBlackScreenForceFixate(testCases[i].initialCrosshairPlacement));
@@ -335,10 +266,8 @@ public class RunEvaluation : MonoBehaviour
                     Debug.Log($"LEFT OBJ MOTION");
                 }
 
-                // Set the contrast value
-                float contrastValue = Mathf.Clamp(segment.contrastThreshold, -100f, 100f);
-                contrastThreshold = contrastValue;
-                colorGrading.contrast.value = segment.contrastThreshold;
+                // Set the contrast value based on sentivity
+                colorGrading.contrast.value = -100 * sensitivity/(1.0f + sensitivity);
                 movingSphere.transform.localScale =  Vector3.one * segment.ballSize;
 
                 // Set scene duration and wait
@@ -367,8 +296,12 @@ public class RunEvaluation : MonoBehaviour
                 // Update progressbar
                 progressBar.maxValue = testCases.Count;
                 Debug.Log($"INCORRECT ANSWER OR UNSURE: TRIAL LENGTH {testCases.Count}, PROGRESS BAR MAX: {progressBar.maxValue}");
+                TrialResponse currentResponse = new TrialResponse{LevelIndex = sensitivity, Correct = true};
+                responseHistory.Add(currentResponse);
             } else {
                 Debug.Log("CORRECT ANSWER");
+                TrialResponse currentResponse = new TrialResponse{LevelIndex = sensitivity, Correct = false};
+                responseHistory.Add(currentResponse);
             }
 
 
@@ -381,9 +314,9 @@ public class RunEvaluation : MonoBehaviour
             waitingForStartInput = true;
             isTrialRunning = false;
 
-            gazePathRecorder.SaveGazeDataToSingleCSV(trialNum, trial.trialID, currentObjectMotionDir.ToString(), answerObjectMotionDir.ToString());
-            gazePathRecorder.ResetGazePath();
-            i++;
+            float sensitivityDelta;
+            staircaseDone = !staircaseSettings.FindNextLevelIndex(responseHistory, out sensitivityDelta);
+            sensitivity += sensitivityDelta;
         }
         startButton.gameObject.SetActive(true);
     }
@@ -529,52 +462,52 @@ public class RunEvaluation : MonoBehaviour
         fixationStart = System.DateTime.Now;
         System.DateTime sinceStartingCrosshair = System.DateTime.Now;
 
-        // Don't progress trial unless they fixate on the crosshair for at least 1s with <2deg accuracy
-        // angle = 2 * atan((obj_size * 0.5) / object_distance)
-        Vector2 crosshairPosPixels = new Vector2(screenResolutionWidthPixels * crosshairPos.x, screenResolutionHeightPixels * crosshairPos.y);
-        float crosshairEcc = CalculateEccentricity(crosshairPosPixels);
-        // gazePathRecorder
+        // // Don't progress trial unless they fixate on the crosshair for at least 1s with <2deg accuracy
+        // // angle = 2 * atan((obj_size * 0.5) / object_distance)
+        // Vector2 crosshairPosPixels = new Vector2(screenResolutionWidthPixels * crosshairPos.x, screenResolutionHeightPixels * crosshairPos.y);
+        // float crosshairEcc = CalculateEccentricity(crosshairPosPixels);
+        // // gazePathRecorder
 
-        bool done = false;
-        bool lookingAtCrosshair = false;
-        float timeSinceFixation = 0.0f;
-        while (!done){
-            var curGazePos = gazePathRecorder.GetMostRecentGazePos();
-            Vector2 curGazePosPixels = new Vector2(screenResolutionWidthPixels * curGazePos.x, screenResolutionHeightPixels * curGazePos.y);
-            float gazeEcc = CalculateEccentricity(curGazePosPixels);
-            float fixationAcc = Mathf.Abs(crosshairEcc - gazeEcc); // sorta stupid way of doing this but i think it works? (niall)
+        // bool done = false;
+        // bool lookingAtCrosshair = false;
+        // float timeSinceFixation = 0.0f;
+        // while (!done){
+        //     var curGazePos = gazePathRecorder.GetMostRecentGazePos();
+        //     Vector2 curGazePosPixels = new Vector2(screenResolutionWidthPixels * curGazePos.x, screenResolutionHeightPixels * curGazePos.y);
+        //     float gazeEcc = CalculateEccentricity(curGazePosPixels);
+        //     float fixationAcc = Mathf.Abs(crosshairEcc - gazeEcc); // sorta stupid way of doing this but i think it works? (niall)
 
-            if (fixationAcc < FIXATION_THREHSOLD){
-                if (!lookingAtCrosshair){ // First frame of fixating after not fixating
-                    lookingAtCrosshair = true;
-                    fixationStart = System.DateTime.Now; // reset the timer because they stopped fixating
-                }
-                if (lookingAtCrosshair){
-                    timeSinceFixation = (float)(System.DateTime.Now - fixationStart).TotalSeconds;
-                    fixationTimer += timeSinceFixation;
-                }
+        //     if (fixationAcc < FIXATION_THREHSOLD){
+        //         if (!lookingAtCrosshair){ // First frame of fixating after not fixating
+        //             lookingAtCrosshair = true;
+        //             fixationStart = System.DateTime.Now; // reset the timer because they stopped fixating
+        //         }
+        //         if (lookingAtCrosshair){
+        //             timeSinceFixation = (float)(System.DateTime.Now - fixationStart).TotalSeconds;
+        //             fixationTimer += timeSinceFixation;
+        //         }
                 
-                if (timeSinceFixation >= MIN_FIXATION_TIME || (float)(System.DateTime.Now - sinceStartingCrosshair).TotalSeconds > 5){
-                    done = true; // Fixated for enough time, or gaze tracker sucks
-                }
-            }
-            else{
-                lookingAtCrosshair = false;
-                fixationTimer = 0.0f;
-                timeSinceFixation = 0.0f;
-                fixationStart = System.DateTime.Now;
-                yield return null;
-            }
+        //         if (timeSinceFixation >= MIN_FIXATION_TIME || (float)(System.DateTime.Now - sinceStartingCrosshair).TotalSeconds > 5){
+        //             done = true; // Fixated for enough time, or gaze tracker sucks
+        //         }
+        //     }
+        //     else{
+        //         lookingAtCrosshair = false;
+        //         fixationTimer = 0.0f;
+        //         timeSinceFixation = 0.0f;
+        //         fixationStart = System.DateTime.Now;
+        //         yield return null;
+        //     }
 
-            print("cross pos: " + crosshairPosPixels.ToString("F3"));
-            print("gaze pos: " + curGazePosPixels.ToString("F3"));
-            print("fixation acc: " + fixationAcc.ToString("F5"));
-            print("fixation timer: " + fixationTimer.ToString("F5"));
-            print("time since fix: " + timeSinceFixation.ToString());
-            print("=====");
-            yield return null;
-        }
-        randomWaitTime = UnityEngine.Random.Range(0.0f, 1.0f);
+        //     print("cross pos: " + crosshairPosPixels.ToString("F3"));
+        //     print("gaze pos: " + curGazePosPixels.ToString("F3"));
+        //     print("fixation acc: " + fixationAcc.ToString("F5"));
+        //     print("fixation timer: " + fixationTimer.ToString("F5"));
+        //     print("time since fix: " + timeSinceFixation.ToString());
+        //     print("=====");
+        //     yield return null;
+        // }
+        randomWaitTime = UnityEngine.Random.Range(1.0f, 3.0f);
         // // Wait for a random duration between 1 and 2 seconds
         yield return new WaitForSeconds(randomWaitTime);
 
