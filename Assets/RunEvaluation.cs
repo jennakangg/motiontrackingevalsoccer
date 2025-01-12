@@ -16,8 +16,7 @@ public class RunEvaluation : MonoBehaviour
 {
     // private RecorderController recorderController;
     // private bool isRecording = false;
-    public PostProcessVolume postProcessVolume; // Reference to the PostProcessVolume
-    private ColorGrading colorGrading; // Reference to the ColorGrading effect
+    public Material targetMaterial;
     public GameObject cameraObject;
     public GameObject movingSphere; // Changed to a GameObject representing the 3D sphere
     public Vector3 kickForce;
@@ -102,16 +101,6 @@ public class RunEvaluation : MonoBehaviour
         Debug.Log("Starting study");
         startButton.gameObject.SetActive(false);
         // InitializeRecorder(); // Initialize the recorder
-
-        // Ensure the PostProcessVolume has a ColorGrading override
-        if (postProcessVolume.profile.TryGetSettings(out colorGrading))
-        {
-            Debug.Log("ColorGrading effect found and ready to use.");
-        }
-        else
-        {
-            Debug.LogError("No ColorGrading effect found on the PostProcessVolume.");
-        }
         StartCoroutine(RunTestCases());
     }
 
@@ -336,9 +325,8 @@ public class RunEvaluation : MonoBehaviour
                 }
 
                 // Set the contrast value
-                float contrastValue = Mathf.Clamp(segment.contrastThreshold, -100f, 100f);
-                contrastThreshold = contrastValue;
-                colorGrading.contrast.value = segment.contrastThreshold;
+                targetMaterial.SetFloat("_Contrast", segment.contrastThreshold);
+
                 movingSphere.transform.localScale =  Vector3.one * segment.ballSize;
 
                 // Set scene duration and wait
