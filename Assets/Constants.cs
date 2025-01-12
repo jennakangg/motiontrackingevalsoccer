@@ -7,8 +7,8 @@ namespace Constants
     {
         public const string ParticipantName = "jenna";
         public const int StartIndex = 0;
-        public const string TrialsLoadedPath = "TrialsToLoad/generated_trials_eval_soccer_0.json";
-        public const string DataOutputFileName = "gaze_data_eval_soccer_jenna";
+        public const string TrialsLoadedPath = "Assets/TrialsToLoad/generated_trials_eval_soccer_jenna_0.json";
+        public const string DataOutputFileName = "gaze_data_eval_soccer_jenna_0";
         public const string PathToGazeDataFolder = "C:/Users/jenna/NYU/MotionPerceptoin/motiontrackingevalsoccer/Assets/GazeData";
 
         public enum TrialSections

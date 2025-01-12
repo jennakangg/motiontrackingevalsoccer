@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028353, g: 0.22571383, b: 0.30692253, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -618,7 +618,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 342465265}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!20 &342465269
 Camera:
   m_ObjectHideFlags: 0
@@ -1365,7 +1365,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 300d66b271b964dc688fa3708955501b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetMaterial: {fileID: 0}
+  targetMaterial: {fileID: 2100000, guid: 9c8fc996b7e01be4287e89e4460e856f, type: 2}
   cameraObject: {fileID: 963194225}
   movingSphere: {fileID: 1694003819}
   kickForce: {x: 0, y: 0, z: 0}

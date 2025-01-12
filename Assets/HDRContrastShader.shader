@@ -54,7 +54,7 @@ Shader "UI/HDRContrastShaderGray"
                 if (texColor.a < 0.01) discard;
 
                 // Apply contrast adjustment to the grayscale value
-                float midpoint = 0.5; // Midpoint for contrast adjustment
+                float midpoint = 0.2; // Midpoint for contrast adjustment
                 float adjustedGray = (texColor.r - midpoint) * _Contrast + midpoint;
 
                 // Clamp the grayscale value to the valid range [0, 1]
