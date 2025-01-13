@@ -284,23 +284,32 @@ public class RunEvaluation : MonoBehaviour
             movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceCrosshairAtPosition(trial.initialCrosshairPlacement);
             // movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceBallAtPosition(trial.initialBallPlacement);
             trialSection = Constants.Constants.TrialSections.CROSSHAIR_FIXATION;
-            
+             // reset ball position 
+            movingSphere.transform.position = new Vector3(-0.162f, 0.077f, 0.049f);
+            movingSphere.transform.rotation = Quaternion.Euler(new Vector3(-0.133f, -0.093f, -0.133f));
+
+            Rigidbody rb = movingSphere.GetComponent<Rigidbody>();
+            rb.useGravity = true;
+            rb.constraints = RigidbodyConstraints.None; // Remove all constraints
+            // Set the contrast value
+            targetMaterial.SetFloat("_Contrast", trial.contrastThreshold);
+            blackScreenPanel.SetActive(false);
+
             yield return StartCoroutine(ShowBlackScreenForceFixate(testCases[i].initialCrosshairPlacement));
 
-            blackScreenPanel.SetActive(false);
             crosshair.SetActive(false);
 
 
             isTrialRunning = true;
             waitingForStartInput = false;
+            
             // StartRecording(); // Start recording for the trial
 
             foreach (Segment segment in trial.segments)
             {
-                // reset ball position 
+               
                 movingSphere.transform.position = new Vector3(-0.162f, 0.077f, 0.049f);
                 movingSphere.transform.rotation = Quaternion.Euler(new Vector3(-0.133f, -0.093f, -0.133f));
-
                 // Set camera position
                 cameraObject.transform.position = segment.cameraPosition;
                 cameraObject.transform.rotation = Quaternion.Euler(segment.cameraRotation);
@@ -324,9 +333,7 @@ public class RunEvaluation : MonoBehaviour
                     Debug.Log($"LEFT OBJ MOTION");
                 }
 
-                // Set the contrast value
-                targetMaterial.SetFloat("_Contrast", segment.contrastThreshold);
-
+            
                 movingSphere.transform.localScale =  Vector3.one * segment.ballSize;
 
                 // Set scene duration and wait
@@ -511,11 +518,15 @@ public class RunEvaluation : MonoBehaviour
     public float MIN_FIXATION_TIME = 2.0f;
     public float FIXATION_THREHSOLD = 4.0f; // degrees
     IEnumerator ShowBlackScreenForceFixate(Vector2 crosshairPos){
-        blackScreenPanel.SetActive(true);
         crosshair.SetActive(true);
         progressBar.gameObject.SetActive(false);
         fixationStart = System.DateTime.Now;
         System.DateTime sinceStartingCrosshair = System.DateTime.Now;
+        Rigidbody rb = movingSphere.GetComponent<Rigidbody>();
+        rb.useGravity = false;
+        rb.velocity = Vector3.zero; // Stop any motion
+        rb.constraints = RigidbodyConstraints.FreezeAll; // Freeze position and rotation
+
 
         // Don't progress trial unless they fixate on the crosshair for at least 1s with <2deg accuracy
         // angle = 2 * atan((obj_size * 0.5) / object_distance)
