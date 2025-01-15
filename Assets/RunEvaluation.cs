@@ -281,7 +281,6 @@ public class RunEvaluation : MonoBehaviour
 
             yield return new WaitUntil(() => !waitingForStartInput);
 
-            movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceCrosshairAtPosition(trial.initialCrosshairPlacement);
             // movingSphere.GetComponent<MoveObjectToTrack3D>().PlaceBallAtPosition(trial.initialBallPlacement);
             trialSection = Constants.Constants.TrialSections.CROSSHAIR_FIXATION;
              // reset ball position 
