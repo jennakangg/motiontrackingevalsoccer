@@ -240,7 +240,7 @@ public class RunEvaluation : MonoBehaviour
                     trial.trial_id,
                     trial.initial_ball_placement.ToVector2(),
                     trial.initial_crosshair_placement.ToVector2(),
-                    0, // Placeholder, as contrast is now per segment
+                    trial.contrast_threshold_multiplier, // Placeholder, as contrast is now per segment
                     segments
                 ));
             }
@@ -287,13 +287,11 @@ public class RunEvaluation : MonoBehaviour
             movingSphere.transform.position = new Vector3(-0.162f, 0.077f, 0.049f);
             movingSphere.transform.rotation = Quaternion.Euler(new Vector3(-0.133f, -0.093f, -0.133f));
 
-            Rigidbody rb = movingSphere.GetComponent<Rigidbody>();
-            rb.useGravity = true;
-            rb.constraints = RigidbodyConstraints.None; // Remove all constraints
+           
             // Set the contrast value
             targetMaterial.SetFloat("_Contrast", trial.contrastThreshold);
             blackScreenPanel.SetActive(false);
-
+            Debug.Log($"CONTRASTTTTT: {trial.contrastThreshold}");
             yield return StartCoroutine(ShowBlackScreenForceFixate(testCases[i].initialCrosshairPlacement));
 
             crosshair.SetActive(false);
@@ -303,7 +301,9 @@ public class RunEvaluation : MonoBehaviour
             waitingForStartInput = false;
             
             // StartRecording(); // Start recording for the trial
-
+            Rigidbody rb = movingSphere.GetComponent<Rigidbody>();
+            rb.useGravity = true;
+            rb.constraints = RigidbodyConstraints.None; // Remove all constraints
             foreach (Segment segment in trial.segments)
             {
                
@@ -528,50 +528,50 @@ public class RunEvaluation : MonoBehaviour
 
 
         // Don't progress trial unless they fixate on the crosshair for at least 1s with <2deg accuracy
-        // angle = 2 * atan((obj_size * 0.5) / object_distance)
-        Vector2 crosshairPosPixels = new Vector2(screenResolutionWidthPixels * crosshairPos.x, screenResolutionHeightPixels * crosshairPos.y);
-        float crosshairEcc = CalculateEccentricity(crosshairPosPixels);
-        // gazePathRecorder
+        // // angle = 2 * atan((obj_size * 0.5) / object_distance)
+        // Vector2 crosshairPosPixels = new Vector2(screenResolutionWidthPixels * crosshairPos.x, screenResolutionHeightPixels * crosshairPos.y);
+        // float crosshairEcc = CalculateEccentricity(crosshairPosPixels);
+        // // gazePathRecorder
 
-        bool done = false;
-        bool lookingAtCrosshair = false;
-        float timeSinceFixation = 0.0f;
-        while (!done){
-            var curGazePos = gazePathRecorder.GetMostRecentGazePos();
-            Vector2 curGazePosPixels = new Vector2(screenResolutionWidthPixels * curGazePos.x, screenResolutionHeightPixels * curGazePos.y);
-            float gazeEcc = CalculateEccentricity(curGazePosPixels);
-            float fixationAcc = Mathf.Abs(crosshairEcc - gazeEcc); // sorta stupid way of doing this but i think it works? (niall)
+        // bool done = false;
+        // bool lookingAtCrosshair = false;
+        // float timeSinceFixation = 0.0f;
+        // while (!done){
+        //     var curGazePos = gazePathRecorder.GetMostRecentGazePos();
+        //     Vector2 curGazePosPixels = new Vector2(screenResolutionWidthPixels * curGazePos.x, screenResolutionHeightPixels * curGazePos.y);
+        //     float gazeEcc = CalculateEccentricity(curGazePosPixels);
+        //     float fixationAcc = Mathf.Abs(crosshairEcc - gazeEcc); // sorta stupid way of doing this but i think it works? (niall)
 
-            if (fixationAcc < FIXATION_THREHSOLD){
-                if (!lookingAtCrosshair){ // First frame of fixating after not fixating
-                    lookingAtCrosshair = true;
-                    fixationStart = System.DateTime.Now; // reset the timer because they stopped fixating
-                }
-                if (lookingAtCrosshair){
-                    timeSinceFixation = (float)(System.DateTime.Now - fixationStart).TotalSeconds;
-                    fixationTimer += timeSinceFixation;
-                }
+        //     if (fixationAcc < FIXATION_THREHSOLD){
+        //         if (!lookingAtCrosshair){ // First frame of fixating after not fixating
+        //             lookingAtCrosshair = true;
+        //             fixationStart = System.DateTime.Now; // reset the timer because they stopped fixating
+        //         }
+        //         if (lookingAtCrosshair){
+        //             timeSinceFixation = (float)(System.DateTime.Now - fixationStart).TotalSeconds;
+        //             fixationTimer += timeSinceFixation;
+        //         }
                 
-                if (timeSinceFixation >= MIN_FIXATION_TIME || (float)(System.DateTime.Now - sinceStartingCrosshair).TotalSeconds > 5){
-                    done = true; // Fixated for enough time, or gaze tracker sucks
-                }
-            }
-            else{
-                lookingAtCrosshair = false;
-                fixationTimer = 0.0f;
-                timeSinceFixation = 0.0f;
-                fixationStart = System.DateTime.Now;
-                yield return null;
-            }
+        //         if (timeSinceFixation >= MIN_FIXATION_TIME || (float)(System.DateTime.Now - sinceStartingCrosshair).TotalSeconds > 5){
+        //             done = true; // Fixated for enough time, or gaze tracker sucks
+        //         }
+        //     }
+        //     else{
+        //         lookingAtCrosshair = false;
+        //         fixationTimer = 0.0f;
+        //         timeSinceFixation = 0.0f;
+        //         fixationStart = System.DateTime.Now;
+        //         yield return null;
+        //     }
 
-            print("cross pos: " + crosshairPosPixels.ToString("F3"));
-            print("gaze pos: " + curGazePosPixels.ToString("F3"));
-            print("fixation acc: " + fixationAcc.ToString("F5"));
-            print("fixation timer: " + fixationTimer.ToString("F5"));
-            print("time since fix: " + timeSinceFixation.ToString());
-            print("=====");
-            yield return null;
-        }
+        //     print("cross pos: " + crosshairPosPixels.ToString("F3"));
+        //     print("gaze pos: " + curGazePosPixels.ToString("F3"));
+        //     print("fixation acc: " + fixationAcc.ToString("F5"));
+        //     print("fixation timer: " + fixationTimer.ToString("F5"));
+        //     print("time since fix: " + timeSinceFixation.ToString());
+        //     print("=====");
+        //     yield return null;
+        // }
         randomWaitTime = UnityEngine.Random.Range(0.0f, 1.0f);
         // // Wait for a random duration between 1 and 2 seconds
         yield return new WaitForSeconds(randomWaitTime);
