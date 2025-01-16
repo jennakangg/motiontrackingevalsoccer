@@ -74,3 +74,4 @@ crashlytics-build.properties
 /[Aa]ssets/SampleRecordings
 /[Aa]ssets/Samples
 /[Aa]ssets/Results
+/[Aa]ssets/GazeData/*
